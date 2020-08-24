@@ -6,28 +6,28 @@ edition = "2018"
 
 [dependencies]
 futures = "0.1.29"
-sp-core = "2.0.0-rc4"
-node-runtime = { version = "*", path = "../../node/runtime" }
-node-primitives = { version = "*", path = "../../node/primitives" }
-sp-runtime = "2.0.0-rc4"
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+node-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+node-primitives = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 rand = "0.7.2"
 clap = "2.33.0"
 tiny-bip39 = "0.7"
 substrate-bip39 = "0.4.1"
 hex = "0.4.0"
 hex-literal = "0.2.1"
-codec = { package = "parity-scale-codec", version = "1.3.1" }
-frame-system = "2.0.0-rc4"
-pallet-balances = "2.0.0-rc4"
-pallet-transaction-payment = "2.0.0-rc4"
-pallet-grandpa = "2.0.0-rc4"
+codec = { package = "parity-scale-codec", version = "1.3.4" }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+pallet-grandpa = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 rpassword = "4.0.1"
 itertools = "0.8.2"
 derive_more = { version = "0.99.2" }
-sc-rpc = "2.0.0-rc4"
+sc-rpc = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 jsonrpc-core-client = { version = "14.2.0", features = ["http"] }
 hyper = "0.12.35"
-libp2p = { version = "0.19.1", default-features = false }
+libp2p = { version = "0.22.0", default-features = false }
 serde_json = "1.0"
 
 [features]

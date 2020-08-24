@@ -32,7 +32,6 @@
 use std::sync::Arc;
 
 use node_primitives::{Block, BlockNumber, AccountId, TokenSymbol, ConvertPrice, Index, Balance, Hash};
-use node_runtime::UncheckedExtrinsic;
 use sp_api::ProvideRuntimeApi;
 use sp_transaction_pool::TransactionPool;
 use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
@@ -44,8 +43,8 @@ use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;
 use grandpa::{SharedVoterState, SharedAuthoritySet};
 use sc_finality_grandpa_rpc::GrandpaRpcHandler;
-use sc_rpc_api::DenyUnsafe;
 use sp_block_builder::BlockBuilder;
+pub use sc_rpc_api::DenyUnsafe;
 
 /// Light client extra dependencies.
 pub struct LightDeps<C, F, P> {
@@ -93,6 +92,9 @@ pub struct FullDeps<C, P, SC> {
 	pub grandpa: GrandpaDeps,
 }
 
+/// A IO handler that uses all Full RPC extensions.
+pub type IoHandler = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
+
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, M, SC>(
 	deps: FullDeps<C, P, SC>,
@@ -101,7 +103,7 @@ pub fn create_full<C, P, M, SC>(
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error=BlockChainError> + 'static,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
-	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance, UncheckedExtrinsic>,
+	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: brml_assets_rpc::AssetsRuntimeApi<Block, TokenSymbol, AccountId, Balance>,
 	C::Api: brml_convert_rpc::ConvertRateRuntimeApi<Block, TokenSymbol, ConvertPrice>,
 	C::Api: BabeApi<Block>,

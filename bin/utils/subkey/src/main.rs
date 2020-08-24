@@ -424,7 +424,7 @@ where
 		Some(Err(e)) => return Err(e),
 		Some(Ok(v)) => Some(v),
 		None => None,
-	};
+	 };
 
 	if let Some(network) = maybe_network {
 		set_default_ss58_version(network);
@@ -434,7 +434,7 @@ where
 		Some(Err(_)) => return Err(Error::Static("Invalid output name. See --help for available outputs.")),
 		Some(Ok(v)) => v,
 		None => OutputType::Text,
-	};
+	 };
 
 	match matches.subcommand() {
 		("generate", Some(matches)) => {
@@ -759,7 +759,6 @@ fn create_extrinsic<C: Crypto>(
 			frame_system::CheckNonce::<Runtime>::from(i),
 			frame_system::CheckWeight::<Runtime>::new(),
 			pallet_transaction_payment::ChargeTransactionPayment::<Runtime>::from(f),
-			pallet_grandpa::ValidateEquivocationReport::<Runtime>::new(),
 		)
 	};
 	let raw_payload = SignedPayload::from_raw(
@@ -770,7 +769,6 @@ fn create_extrinsic<C: Crypto>(
 			VERSION.transaction_version,
 			genesis_hash,
 			genesis_hash,
-			(),
 			(),
 			(),
 			(),
