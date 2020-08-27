@@ -21,7 +21,8 @@ use crate::{
 use codec::Encode;
 use cumulus_primitives::ParaId;
 use log::info;
-use parachain_runtime::Block;
+//use parachain_runtime::Block;
+use node_runtime::{Block, RuntimeApi};
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
@@ -68,7 +69,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&parachain_runtime::VERSION
+		&node_runtime::VERSION
 	}
 }
 
@@ -78,7 +79,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn impl_version() -> String {
-		env!("SUBSTRATE_CLI_IMPL_VERSION").into()
+		"substrate_impl_version".into()
 	}
 
 	fn description() -> String {
@@ -160,42 +161,23 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Base(subcommand)) => {
 			let runner = cli.create_runner(subcommand)?;
 
-			if use_contracts_runtime(&runner.config().chain_spec) {
-				runner.run_subcommand(subcommand, |mut config| {
-					let params = crate::service::new_partial::<
-						parachain_contracts_runtime::RuntimeApi,
-						crate::service::ContractsRuntimeExecutor,
-					>(&mut config)?;
+			runner.run_subcommand(subcommand, |mut config| {
+				let params = crate::service::new_partial(&mut config)?;
 
-					Ok((
-						params.client,
-						params.backend,
-						params.import_queue,
-						params.task_manager,
-					))
-				})
-			} else {
-				runner.run_subcommand(subcommand, |mut config| {
-					let params = crate::service::new_partial::<
-						parachain_runtime::RuntimeApi,
-						crate::service::RuntimeExecutor,
-					>(&mut config)?;
-
-					Ok((
-						params.client,
-						params.backend,
-						params.import_queue,
-						params.task_manager,
-					))
-				})
-			}
+				Ok((
+					params.client,
+					params.backend,
+					params.import_queue,
+					params.task_manager,
+				))
+			})
 		}
 		Some(Subcommand::ExportGenesisState(params)) => {
 			sc_cli::init_logger("");
 
-			let block = generate_genesis_state(&load_spec(
-				&params.chain.clone().unwrap_or_default(),
-				params.parachain_id.into(),
+			let block = generate_genesis_state(&cli.load_spec(
+				&params.chain.clone().unwrap_or_default()
+//				params.parachain_id.into(),
 			)?)?;
 			let header_hex = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
@@ -262,24 +244,23 @@ pub fn run() -> Result<()> {
 					if cli.run.base.validator { "yes" } else { "no" }
 				);
 
-				if use_contracts_runtime(&config.chain_spec) {
-					crate::service::start_contracts_node(
-						config,
-						key,
-						polkadot_config,
-						id,
-						cli.run.base.validator,
-					)
-				} else {
-					crate::service::start_node(
-						config,
-						key,
-						polkadot_config,
-						id,
-						cli.run.base.validator,
-					)
-						.map(|r| r.0)
-				}
+//				if use_contracts_runtime(&config.chain_spec) {
+//					crate::service::start_contracts_node(
+//						config,
+//						key,
+//						polkadot_config,
+//						id,
+//						cli.run.base.validator,
+//					)
+//				} else {
+				crate::service::start_node(
+					config,
+					key,
+					polkadot_config,
+					id,
+					cli.run.base.validator,
+				).map(|r| r.0)
+//				}
 			})
 		}
 	}

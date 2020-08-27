@@ -28,6 +28,8 @@
 
 #![warn(missing_docs)]
 
+extern crate polkadot_cli;
+
 pub mod chain_spec;
 
 #[macro_use]

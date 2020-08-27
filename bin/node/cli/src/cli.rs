@@ -82,9 +82,9 @@ impl std::ops::Deref for RunCmd {
 
 #[derive(Debug, StructOpt)]
 #[structopt(settings = &[
-structopt::clap::AppSettings::GlobalVersion,
-structopt::clap::AppSettings::ArgsNegateSubcommands,
-structopt::clap::AppSettings::SubcommandsNegateReqs,
+	structopt::clap::AppSettings::GlobalVersion,
+	structopt::clap::AppSettings::ArgsNegateSubcommands,
+	structopt::clap::AppSettings::SubcommandsNegateReqs,
 ])]
 pub struct Cli {
 	#[structopt(subcommand)]

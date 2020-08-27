@@ -15,12 +15,14 @@
 // along with Bifrost.  If not, see <http://www.gnu.org/licenses/>.
 
 use ansi_term::Color;
+use crate::executor::Executor;
 use cumulus_network::DelayedBlockAnnounceValidator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use polkadot_primitives::v0::CollatorPair;
-use rococo_parachain_primitives::Block;
+//use rococo_parachain_primitives::Block;
+use node_runtime::{Block, RuntimeApi};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_informant::OutputFormat;
@@ -33,22 +35,22 @@ use std::sync::Arc;
 // Native executor instance.
 native_executor_instance!(
 	pub RuntimeExecutor,
-	parachain_runtime::api::dispatch,
-	parachain_runtime::native_version,
+	node_runtime::api::dispatch,
+	node_runtime::native_version,
 );
 
 // Native executor instance for the contracts runtime.
-native_executor_instance!(
-	pub ContractsRuntimeExecutor,
-	parachain_contracts_runtime::api::dispatch,
-	parachain_contracts_runtime::native_version,
-);
+//native_executor_instance!(
+//	pub ContractsRuntimeExecutor,
+//	parachain_contracts_runtime::api::dispatch,
+//	parachain_contracts_runtime::native_version,
+//);
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
 /// be able to perform chain operations.
-pub fn new_partial<RuntimeApi, Executor>(
+pub fn new_partial(
 	config: &mut Configuration,
 ) -> Result<
 	PartialComponents<
@@ -61,22 +63,22 @@ pub fn new_partial<RuntimeApi, Executor>(
 	>,
 	sc_service::Error,
 >
-	where
-		RuntimeApi: ConstructRuntimeApi<Block, TFullClient<Block, RuntimeApi, Executor>>
-		+ Send
-		+ Sync
-		+ 'static,
-		RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
-		+ sp_api::Metadata<Block>
-		+ sp_session::SessionKeys<Block>
-		+ sp_api::ApiExt<
-			Block,
-			Error = sp_blockchain::Error,
-			StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>,
-		> + sp_offchain::OffchainWorkerApi<Block>
-		+ sp_block_builder::BlockBuilder<Block>,
-		sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
-		Executor: sc_executor::NativeExecutionDispatch + 'static,
+//	where
+//		RuntimeApi: ConstructRuntimeApi<Block, TFullClient<Block, RuntimeApi, Executor>>
+//		+ Send
+//		+ Sync
+//		+ 'static,
+//		RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
+//		+ sp_api::Metadata<Block>
+//		+ sp_session::SessionKeys<Block>
+//		+ sp_api::ApiExt<
+//			Block,
+//			Error = sp_blockchain::Error,
+//			StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>,
+//		> + sp_offchain::OffchainWorkerApi<Block>
+//		+ sp_block_builder::BlockBuilder<Block>,
+//		sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
+//		Executor: sc_executor::NativeExecutionDispatch + 'static,
 {
 	let inherent_data_providers = sp_inherents::InherentDataProviders::new();
 
@@ -119,7 +121,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-fn start_node_impl<RuntimeApi, Executor, RB>(
+fn start_node_impl<RB>(
 	parachain_config: Configuration,
 	collator_key: Arc<CollatorPair>,
 	mut polkadot_config: polkadot_collator::Configuration,
@@ -128,21 +130,21 @@ fn start_node_impl<RuntimeApi, Executor, RB>(
 	rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 	where
-		RuntimeApi: ConstructRuntimeApi<Block, TFullClient<Block, RuntimeApi, Executor>>
-		+ Send
-		+ Sync
-		+ 'static,
-		RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
-		+ sp_api::Metadata<Block>
-		+ sp_session::SessionKeys<Block>
-		+ sp_api::ApiExt<
-			Block,
-			Error = sp_blockchain::Error,
-			StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>,
-		> + sp_offchain::OffchainWorkerApi<Block>
-		+ sp_block_builder::BlockBuilder<Block>,
-		sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
-		Executor: sc_executor::NativeExecutionDispatch + 'static,
+//		RuntimeApi: ConstructRuntimeApi<Block, TFullClient<Block, RuntimeApi, Executor>>
+//		+ Send
+//		+ Sync
+//		+ 'static,
+//		RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
+//		+ sp_api::Metadata<Block>
+//		+ sp_session::SessionKeys<Block>
+//		+ sp_api::ApiExt<
+//			Block,
+//			Error = sp_blockchain::Error,
+//			StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>,
+//		> + sp_offchain::OffchainWorkerApi<Block>
+//		+ sp_block_builder::BlockBuilder<Block>,
+//		sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
+//		Executor: sc_executor::NativeExecutionDispatch + 'static,
 		RB: Fn(
 			Arc<TFullClient<Block, RuntimeApi, Executor>>,
 		) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
@@ -164,7 +166,7 @@ fn start_node_impl<RuntimeApi, Executor, RB>(
 		prefix: format!("[{}] ", Color::Blue.bold().paint("Relaychain")),
 	};
 
-	let params = new_partial::<RuntimeApi, Executor>(&mut parachain_config)?;
+	let params = new_partial(&mut parachain_config)?;
 	params
 		.inherent_data_providers
 		.register_provider(sp_timestamp::InherentDataProvider)
@@ -269,9 +271,9 @@ pub fn start_node(
 	validator: bool,
 ) -> sc_service::error::Result<(
 	TaskManager,
-	Arc<TFullClient<Block, parachain_runtime::RuntimeApi, RuntimeExecutor>>,
+	Arc<TFullClient<Block, RuntimeApi, Executor>>,
 )> {
-	start_node_impl::<parachain_runtime::RuntimeApi, RuntimeExecutor, _>(
+	start_node_impl::<_>(
 		parachain_config,
 		collator_key,
 		polkadot_config,
@@ -281,27 +283,27 @@ pub fn start_node(
 	)
 }
 
-/// Start a contracts parachain node.
-pub fn start_contracts_node(
-	parachain_config: Configuration,
-	collator_key: Arc<CollatorPair>,
-	polkadot_config: polkadot_collator::Configuration,
-	id: polkadot_primitives::v0::Id,
-	validator: bool,
-) -> sc_service::error::Result<TaskManager> {
-	start_node_impl::<parachain_contracts_runtime::RuntimeApi, ContractsRuntimeExecutor, _>(
-		parachain_config,
-		collator_key,
-		polkadot_config,
-		id,
-		validator,
-		|client| {
-			let mut io = jsonrpc_core::IoHandler::default();
-
-			use cumulus_pallet_contracts_rpc::{Contracts, ContractsApi};
-			io.extend_with(ContractsApi::to_delegate(Contracts::new(client)));
-			io
-		},
-	)
-		.map(|r| r.0)
-}
+///// Start a contracts parachain node.
+//pub fn start_contracts_node(
+//	parachain_config: Configuration,
+//	collator_key: Arc<CollatorPair>,
+//	polkadot_config: polkadot_collator::Configuration,
+//	id: polkadot_primitives::v0::Id,
+//	validator: bool,
+//) -> sc_service::error::Result<TaskManager> {
+//	start_node_impl::<parachain_contracts_runtime::RuntimeApi, ContractsRuntimeExecutor, _>(
+//		parachain_config,
+//		collator_key,
+//		polkadot_config,
+//		id,
+//		validator,
+//		|client| {
+//			let mut io = jsonrpc_core::IoHandler::default();
+//
+//			use cumulus_pallet_contracts_rpc::{Contracts, ContractsApi};
+//			io.extend_with(ContractsApi::to_delegate(Contracts::new(client)));
+//			io
+//		},
+//	)
+//		.map(|r| r.0)
+//}

@@ -44,6 +44,9 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-bran
 sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 
+sp-session = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+
 # client dependencies
 sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sc-chain-spec = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
@@ -146,6 +149,7 @@ platforms = "0.2.1"
 structopt = { version = "0.3.8", optional = true }
 node-inspect = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch", optional = true }
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch", optional = true }
+vergen = "3.0.4"
 
 [build-dependencies.sc-cli]
 package = "sc-cli"
@@ -163,6 +167,7 @@ browser = [
 cli = [
 	"sc-executor/wasmi-errno",
 	"node-inspect",
+	"polkadot-cli/default",
 	"sc-cli",
 	"sc-service/db",
 	"structopt",
