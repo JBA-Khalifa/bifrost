@@ -16,12 +16,13 @@
 
 //! Bifrost chain configurations.
 
+use cumulus_primitives::ParaId;
 use sc_chain_spec::ChainSpecExtension;
 use sp_core::{Pair, Public, crypto::UncheckedInto, sr25519};
 use serde::{Serialize, Deserialize};
 use node_runtime::{
 	AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, CouncilConfig, DemocracyConfig, ElectionsConfig,
-	GrandpaConfig, ImOnlineConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig,
+	GrandpaConfig, ImOnlineConfig, ParachainInfoConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig,
 	IndicesConfig, SocietyConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig, wasm_binary_unwrap,
 	AssetsConfig, BridgeEosConfig, VoucherConfig, SwapConfig, ConvertConfig,
 };
@@ -50,10 +51,17 @@ const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 #[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension)]
 #[serde(rename_all = "camelCase")]
 pub struct Extensions {
-	/// Block numbers with known hashes.
-	pub fork_blocks: sc_client_api::ForkBlocks<Block>,
-	/// Known bad block hashes.
-	pub bad_blocks: sc_client_api::BadBlocks<Block>,
+	/// The relay chain of the Parachain.
+	pub relay_chain: String,
+	/// The id of the Parachain.
+	pub para_id: u32,
+}
+
+impl Extensions {
+	/// Try to get the extension from the given `ChainSpec`.
+	pub fn try_get(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Option<&Self> {
+		sc_chain_spec::get_extension(chain_spec.extensions())
+	}
 }
 
 /// Specialized `ChainSpec`.
@@ -61,10 +69,6 @@ pub type ChainSpec = sc_service::GenericChainSpec<
 	GenesisConfig,
 	Extensions,
 >;
-/// Flaming Fir testnet generator
-pub fn flaming_fir_config() -> Result<ChainSpec, String> {
-	ChainSpec::from_json_bytes(&include_bytes!("../res/flaming-fir.json")[..])
-}
 
 fn session_keys(
 	grandpa: GrandpaId,
@@ -144,10 +148,13 @@ fn staging_testnet_config_genesis() -> GenesisConfig {
 
 	let endowed_accounts: Vec<AccountId> = vec![root_key.clone()];
 
+	let id: ParaId = 2000u32.into();
+
 	testnet_genesis(
 		initial_authorities,
 		root_key,
 		Some(endowed_accounts),
+		id,
 	)
 }
 
@@ -213,6 +220,7 @@ pub fn testnet_genesis(
 	)>,
 	root_key: AccountId,
 	endowed_accounts: Option<Vec<AccountId>>,
+	id: ParaId,
 ) -> GenesisConfig {
 	let endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
 		vec![
@@ -344,6 +352,7 @@ pub fn testnet_genesis(
 			}
 		},
 		brml_swap: initialize_swap_module(root_key),
+		parachain_info: Some(ParachainInfoConfig { parachain_id: id }),
 	}
 }
 
@@ -410,6 +419,7 @@ fn development_config_genesis() -> GenesisConfig {
 		],
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
 		None,
+		1000u32.into(),
 	)
 }
 
@@ -443,7 +453,10 @@ pub fn development_config() -> ChainSpec {
 		None,
 		protocol_id,
 		properties,
-		Default::default(),
+		Extensions {
+			relay_chain: "rococo-local".into(),
+			para_id: 1000u32.into(),
+		},
 	)
 }
 
@@ -455,6 +468,7 @@ fn local_testnet_genesis() -> GenesisConfig {
 		],
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
 		None,
+		1000u32.into(),
 	)
 }
 
@@ -478,6 +492,7 @@ pub fn bifrost_genesis(
 	initial_authorities: Vec<(AccountId, AccountId, GrandpaId, BabeId, ImOnlineId, AuthorityDiscoveryId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
+	id: ParaId,
 ) -> GenesisConfig {
 	let num_endowed_accounts = endowed_accounts.len();
 
@@ -586,6 +601,7 @@ pub fn bifrost_genesis(
 			}
 		},
 		brml_swap: initialize_swap_module(root_key),
+		parachain_info: Some(ParachainInfoConfig { parachain_id: id }),
 	}
 }
 
@@ -723,10 +739,13 @@ fn bifrost_config_genesis() -> GenesisConfig {
 
 	let endowed_accounts: Vec<AccountId> = vec![root_key.clone()];
 
+	let id: ParaId = 1000u32.into();
+
 	bifrost_genesis(
 		initial_authorities,
 		root_key,
 		endowed_accounts,
+		id,
 	)
 }
 

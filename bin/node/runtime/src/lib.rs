@@ -815,7 +815,7 @@ impl pallet_vesting::Trait for Runtime {
 	type WeightInfo = ();
 }
 
-// bifrost rumtine time
+// bifrost runtime time begin
 impl brml_assets::Trait for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -917,8 +917,33 @@ impl brml_oracle::Trait for Runtime {
 impl chainlink::Trait for Runtime {
 	type Event = Event;
 }
+// bifrost runtime time end
 
-// bifrost rumtine time end
+// parachain runtime time begin
+impl cumulus_parachain_upgrade::Trait for Runtime {
+	type Event = Event;
+	type OnValidationFunctionParams = ();
+}
+
+impl cumulus_message_broker::Trait for Runtime {
+	type Event = Event;
+	type DownwardMessageHandlers = TokenDealer;
+	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
+	type ParachainId = ParachainInfo;
+	type XCMPMessage = cumulus_token_dealer::XCMPMessage<AccountId, Balance>;
+	type XCMPMessageHandlers = TokenDealer;
+}
+
+impl cumulus_token_dealer::Trait for Runtime {
+	type Event = Event;
+	type UpwardMessageSender = MessageBroker;
+	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
+	type Currency = Balances;
+	type XCMPMessageSender = MessageBroker;
+}
+
+impl parachain_info::Trait for Runtime {}
+// parachain runtime time end
 
 construct_runtime!(
 	pub enum Runtime where
@@ -957,16 +982,21 @@ construct_runtime!(
 		Scheduler: pallet_scheduler::{Module, Call, Storage, Event<T>},
 		Proxy: pallet_proxy::{Module, Call, Storage, Event<T>},
 		Multisig: pallet_multisig::{Module, Call, Storage, Event<T>},
-		// Modules from brml
+		// brml modules
 		Assets: brml_assets::{Module, Call, Storage, Event<T>, Config<T>},
 		Convert: brml_convert::{Module, Call, Storage, Event, Config<T>},
 		BridgeEos: brml_bridge_eos::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
 		Swap: brml_swap::{Module, Call, Storage, Event<T>, Config<T>},
 		Voucher: brml_voucher::{Module, Call, Storage, Event<T>, Config<T>},
 		ProxyValidator: brml_proxy_validator::{Module, Call, Storage, Event<T>},
-		// chainlink
+		// chainlink modules
 		Oracle: brml_oracle::{Module, Call, Storage},
 		Chainlink: chainlink::{Module, Call, Storage, Event<T>},
+		// parachain modules
+		ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
+		MessageBroker: cumulus_message_broker::{Module, Call, Inherent, Event<T>},
+		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
+		ParachainInfo: parachain_info::{Module, Storage, Config},
 	}
 );
 
@@ -1258,6 +1288,8 @@ impl_runtime_apis! {
 		}
 	}
 }
+
+cumulus_runtime::register_validate_block!(Block, Executive);
 
 #[cfg(test)]
 mod tests {
