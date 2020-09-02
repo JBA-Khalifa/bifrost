@@ -19,3 +19,56 @@ members = [
 
 [profile.release]
 panic = "unwind"
+
+[patch.crates-io]
+frame-support = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+frame-system = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+pallet-elections-phragmen = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+pallet-staking = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+pallet-session = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+pallet-grandpa = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+pallet-authorship = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+pallet-finality-tracker = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+pallet-timestamp = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+pallet-babe = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-runtime = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-keyring = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-storage = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-core = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-externalities = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-io = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-application-crypto = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-staking = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-version = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-inherents = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-api = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-consensus-babe = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-consensus = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-transaction-pool = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-blockchain = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-rpc = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-trie = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-utils = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-state-machine = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-block-builder = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-finality-grandpa = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-offchain = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-chain-spec = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sp-session = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-executor = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-finality-grandpa = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-consensus-babe = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-consensus-babe-rpc = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-consensus-epochs = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-client-api = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-block-builder = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-network = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-light = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-transaction-pool = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-client-db = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-service = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-cli = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-telemetry = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-rpc-api = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-keystore = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+sc-chain-spec = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
