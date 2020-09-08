@@ -4,7 +4,7 @@ members = [
 	"bin/node/inspect",
 	"bin/node/primitives",
 	"bin/node/runtime",
-	"bin/utils/subkey",
+#	"bin/utils/subkey",
 	"brml/assets",
 	"brml/assets/rpc",
 	"brml/bridge-eos",
@@ -72,3 +72,57 @@ sc-telemetry = { git = "https://github.com/bifrost-finance/substrate.git", branc
 sc-rpc-api = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
 sc-keystore = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
 sc-chain-spec = { git = "https://github.com/bifrost-finance/substrate.git", branch = "jamie-consensus" }
+
+# use local crates for debug
+#frame-support = { path = "/Volumes/Bifrost/consensus/substrate/frame/support" }
+#frame-system = { path = "/Volumes/Bifrost/consensus/substrate/frame/system" }
+#pallet-elections-phragmen = { path = "/Volumes/Bifrost/consensus/substrate/frame/elections-phragmen" }
+#pallet-staking = { path = "/Volumes/Bifrost/consensus/substrate/frame/staking" }
+#pallet-session = { path = "/Volumes/Bifrost/consensus/substrate/frame/session" }
+#pallet-grandpa = { path = "/Volumes/Bifrost/consensus/substrate/frame/grandpa" }
+#pallet-authorship = { path = "/Volumes/Bifrost/consensus/substrate/frame/authorship" }
+#pallet-finality-tracker = { path = "/Volumes/Bifrost/consensus/substrate/frame/finality-tracker" }
+#pallet-timestamp = { path = "/Volumes/Bifrost/consensus/substrate/frame/timestamp" }
+#pallet-babe = { path = "/Volumes/Bifrost/consensus/substrate/frame/babe" }
+#sp-runtime = { path = "/Volumes/Bifrost/consensus/substrate/primitives/runtime" }
+#sp-keyring = { path = "/Volumes/Bifrost/consensus/substrate/primitives/keyring" }
+#sp-storage = { path = "/Volumes/Bifrost/consensus/substrate/primitives/storage" }
+#sp-core = { path = "/Volumes/Bifrost/consensus/substrate/primitives/core" }
+#sp-externalities = { path = "/Volumes/Bifrost/consensus/substrate/primitives/externalities" }
+#sp-io = { path = "/Volumes/Bifrost/consensus/substrate/primitives/io" }
+#sp-application-crypto = { path = "/Volumes/Bifrost/consensus/substrate/primitives/application-crypto" }
+#sp-staking = { path = "/Volumes/Bifrost/consensus/substrate/primitives/staking" }
+#sp-version = { path = "/Volumes/Bifrost/consensus/substrate/primitives/version" }
+#sp-inherents = { path = "/Volumes/Bifrost/consensus/substrate/primitives/inherents" }
+#sp-api = { path = "/Volumes/Bifrost/consensus/substrate/primitives/api" }
+#sp-consensus-babe = { path = "/Volumes/Bifrost/consensus/substrate/primitives/consensus/babe" }
+#sp-consensus = { path = "/Volumes/Bifrost/consensus/substrate/primitives/consensus/common" }
+#sp-transaction-pool = { path = "/Volumes/Bifrost/consensus/substrate/primitives/transaction-pool" }
+#sp-blockchain = { path = "/Volumes/Bifrost/consensus/substrate/primitives/blockchain" }
+#sp-rpc = { path = "/Volumes/Bifrost/consensus/substrate/primitives/rpc" }
+#sp-trie = { path = "/Volumes/Bifrost/consensus/substrate/primitives/trie" }
+#sp-utils = { path = "/Volumes/Bifrost/consensus/substrate/primitives/utils" }
+#sp-state-machine = { path = "/Volumes/Bifrost/consensus/substrate/primitives/state-machine" }
+#sp-block-builder = { path = "/Volumes/Bifrost/consensus/substrate/primitives/block-builder" }
+#sp-finality-grandpa = { path = "/Volumes/Bifrost/consensus/substrate/primitives/finality-grandpa" }
+#sp-offchain = { path = "/Volumes/Bifrost/consensus/substrate/primitives/offchain" }
+#sp-chain-spec = { path = "/Volumes/Bifrost/consensus/substrate/primitives/chain-spec" }
+#sp-session = { path = "/Volumes/Bifrost/consensus/substrate/primitives/session" }
+#sc-executor = { path = "/Volumes/Bifrost/consensus/substrate/client/executor" }
+#sc-finality-grandpa = { path = "/Volumes/Bifrost/consensus/substrate/client/finality-grandpa" }
+#sc-consensus-babe = { path = "/Volumes/Bifrost/consensus/substrate/client/consensus/babe" }
+#sc-consensus-babe-rpc = { path = "/Volumes/Bifrost/consensus/substrate/client/consensus/babe/rpc" }
+#sc-consensus-epochs = { path = "/Volumes/Bifrost/consensus/substrate/client/consensus/epochs" }
+#sc-client-api = { path = "/Volumes/Bifrost/consensus/substrate/client/api" }
+#sc-block-builder = { path = "/Volumes/Bifrost/consensus/substrate/client/block-builder" }
+#sc-network = { path = "/Volumes/Bifrost/consensus/substrate/client/network" }
+#sc-light = { path = "/Volumes/Bifrost/consensus/substrate/client/light" }
+#sc-transaction-pool = { path = "/Volumes/Bifrost/consensus/substrate/client/transaction-pool" }
+#sc-client-db = { path = "/Volumes/Bifrost/consensus/substrate/client/db" }
+#sc-service = { path = "/Volumes/Bifrost/consensus/substrate/client/service" }
+#sc-cli = { path = "/Volumes/Bifrost/consensus/substrate/client/cli" }
+#sc-telemetry = { path = "/Volumes/Bifrost/consensus/substrate/client/telemetry" }
+#sc-rpc-api = { path = "/Volumes/Bifrost/consensus/substrate/client/rpc-api" }
+#sc-rpc = { path = "/Volumes/Bifrost/consensus/substrate/client/rpc" }
+#sc-keystore = { path = "/Volumes/Bifrost/consensus/substrate/client/keystore" }
+#sc-chain-spec = { path = "/Volumes/Bifrost/consensus/substrate/client/chain-spec" }
