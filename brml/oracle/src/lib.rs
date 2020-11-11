@@ -2,7 +2,7 @@
 
 use chainlink::{Event, create_request_event_from_parameters};
 use frame_support::traits::{Get};
-use frame_support::{weights::Weight,Parameter, decl_module, decl_storage, dispatch::DispatchResult};
+use frame_support::{weights::Weight, Parameter, decl_module, decl_storage, dispatch::DispatchResult};
 use node_primitives::TokenPriceHandler;
 use frame_system::{self as system, ensure_signed};
 use sp_std::prelude::*;

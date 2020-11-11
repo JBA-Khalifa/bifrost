@@ -22,7 +22,7 @@ mod tests;
 use codec::{Encode, Decode};
 use core::convert::{From, Into};
 use frame_support::storage::{StorageMap, IterableStorageDoubleMap};
-use frame_support::{weights::Weight,decl_event, decl_error, decl_module, decl_storage, ensure, debug, Parameter};
+use frame_support::{weights::Weight, decl_event, decl_error, decl_module, decl_storage, ensure, debug, Parameter};
 use frame_system::{ensure_root, ensure_signed};
 use node_primitives::{AssetTrait, BridgeAssetTo, RewardHandler, TokenSymbol};
 use sp_runtime::RuntimeDebug;

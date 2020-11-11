@@ -12,6 +12,7 @@ members = [
 	"brml/chainlink",
 	"brml/convert",
 	"brml/convert/rpc",
+	"brml/crowd-fund",
 	"brml/oracle",
 	"brml/proxy-validator",
 	"brml/swap",
