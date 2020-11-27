@@ -150,8 +150,8 @@ pub fn testnet_genesis(
 	initial_authorities: Vec<(
 		AccountId,
 		AccountId,
-		BabeId,
 		GrandpaId,
+		BabeId,
 		ImOnlineId,
 		AuthorityDiscoveryId,
 	)>,
@@ -178,6 +178,16 @@ pub fn testnet_genesis(
 		pallet_indices: Some(IndicesConfig {
 			indices: vec![],
 		}),
+		pallet_session: Some(SessionConfig {
+			keys: initial_authorities.iter().map(|x| {
+				(x.0.clone(), x.0.clone(), session_keys(
+					x.2.clone(),
+					x.3.clone(),
+					x.4.clone(),
+					x.5.clone(),
+				))
+			}).collect::<Vec<_>>(),
+		}),
 		pallet_staking: Some(StakingConfig {
 			validator_count: 30,
 			minimum_validator_count: 3,
@@ -186,16 +196,6 @@ pub fn testnet_genesis(
 			}).collect(),
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone())
 				.chain(endowed_accounts.iter().cloned()).collect::<Vec<_>>(),
-			slash_reward_fraction: Perbill::from_percent(10),
-			.. Default::default()
-		}),
-		pallet_staking: Some(StakingConfig {
-			validator_count: initial_authorities.len() as u32 * 2,
-			minimum_validator_count: initial_authorities.len() as u32,
-			stakers: initial_authorities.iter().map(|x| {
-				(x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator)
-			}).collect(),
-			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			slash_reward_fraction: Perbill::from_percent(10),
 			.. Default::default()
 		}),

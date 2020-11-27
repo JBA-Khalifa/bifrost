@@ -30,7 +30,7 @@ use bifrost_runtime::{
 };
 use crate::chain_spec::{
 	Extensions, BabeId, GrandpaId, ImOnlineId, AuthorityDiscoveryId,
-	get_authority_keys_from_seed, get_account_id_from_seed, initialize_all_vouchers, testnet_accounts
+	authority_keys_from_seed, get_account_id_from_seed, initialize_all_vouchers, testnet_accounts
 };
 
 const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -44,8 +44,8 @@ pub fn config() -> Result<ChainSpec, String> {
 }
 
 fn session_keys(
-	babe: BabeId,
 	grandpa: GrandpaId,
+	babe: BabeId,
 	im_online: ImOnlineId,
 	authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
@@ -292,7 +292,7 @@ pub fn testnet_genesis(
 
 fn development_config_genesis(_wasm_binary: &[u8]) -> GenesisConfig {
 	testnet_genesis(
-		vec![get_authority_keys_from_seed("Alice")],
+		vec![authority_keys_from_seed("Alice")],
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
 		None,
 	)
@@ -318,8 +318,8 @@ pub fn development_config() -> Result<ChainSpec, String> {
 fn local_testnet_genesis(_wasm_binary: &[u8]) -> GenesisConfig {
 	testnet_genesis(
 		vec![
-			get_authority_keys_from_seed("Alice"),
-			get_authority_keys_from_seed("Bob"),
+			authority_keys_from_seed("Alice"),
+			authority_keys_from_seed("Bob"),
 		],
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
 		None,
