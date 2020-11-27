@@ -44,7 +44,7 @@ use sp_core::{
 pub use node_primitives::{AccountId, Signature};
 use node_primitives::{
 	AccountIndex, Balance, BlockNumber, Cost, Hash, Income, Index, Moment, Price,
-	 AssetId, Precision, TokenSymbol, ConvertPrice, RatePerBlock
+	 AssetId, Precision, Fee, PoolId, PoolWeight, TokenSymbol, ConvertPrice, RatePerBlock
 };
 use sp_api::impl_runtime_apis;
 use sp_runtime::{
@@ -97,11 +97,11 @@ mod weights;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+/// Wasm binary unwrapped. If built with `SKIP_WASM_BUILD`, the function panics.
 #[cfg(feature = "std")]
-/// Wasm binary unwrapped. If built with `BUILD_DUMMY_WASM_BINARY`, the function panics.
 pub fn wasm_binary_unwrap() -> &'static [u8] {
 	WASM_BINARY.expect("Development wasm binary is not available. This means the client is \
-						built with `BUILD_DUMMY_WASM_BINARY` flag and it is only usable for \
+						built with `SKIP_WASM_BUILD` flag and it is only usable for \
 						production chains. Please rebuild with the flag disabled.")
 }
 
@@ -119,6 +119,12 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
+
+#[derive(codec::Encode, codec::Decode)]
+pub enum XCMPMessage<XAccountId, XBalance> {
+	/// Transfer tokens to the given account from the Parachain account.
+	TransferToken(XAccountId, XBalance),
+}
 
 /// Native version.
 #[cfg(any(feature = "std", test))]
@@ -942,34 +948,52 @@ impl brml_bridge_iost::Trait for Runtime {
 }
 
 parameter_types! {
-	pub const InitPoolSupply: Balance = 1000 * DOLLARS;
-	// when in a trade, trade_amount / all_amount <= 1 / 2
-	pub const MaximumSwapInRatio: Balance = 2;
-	pub const MinimumBalance: Balance = 1 * DOLLARS;
-	pub const MaximumSwapFee: Balance = 10_000; // 10%
-	pub const MinimumSwapFee: Balance = 1; // 0.0001%
-	pub const FeePrecision: Balance = DOLLARS / 10_000_000;
+	pub const MaximumSwapInRatio: u64 = 2;
+	pub const MinimumPassedInPoolTokenShares: u64 = 2;
+	pub const MinimumSwapFee: u64 = 1; // 0.001%
+	pub const MaximumSwapFee: u64 = 10_000; // 10%
+	pub const FeePrecision: u64 = 10_000;
+	pub const WeightPrecision: u64 = 100_000;
+	pub const BNCAssetId: TokenSymbol = TokenSymbol::IOST;
+	pub const InitialPoolSupply: u64 = 1_000;
+
+	pub const NumberOfSupportedTokens: u8 = 8;
+	pub const BonusClaimAgeDenominator: u32 = 14_400;
+	pub const MaximumPassedInPoolTokenShares: u64 = 1_000_000;
 }
 
 impl brml_swap::Trait for Runtime {
-	type Fee = Balance;
 	type Event = Event;
-	type AssetTrait = Assets;
-	type Balance = Balance;
+	type Fee = Fee;
 	type AssetId = AssetId;
+	type PoolId = PoolId;
+	type Balance = Balance;
 	type Cost = Cost;
 	type Income = Income;
-	type InvariantValue = Balance;
-	type PoolWeight = Balance;
-	type InitPoolSupply = InitPoolSupply;
+	type AssetTrait = Assets;
+	type PoolWeight = PoolWeight;
 	type MaximumSwapInRatio = MaximumSwapInRatio;
-	type MinimumBalance = MinimumBalance;
-	type MaximumSwapFee = MaximumSwapFee;
+	type MinimumPassedInPoolTokenShares = MinimumPassedInPoolTokenShares;
 	type MinimumSwapFee = MinimumSwapFee;
+	type MaximumSwapFee = MaximumSwapFee;
 	type FeePrecision = FeePrecision;
-	type WeightInfo = weights::pallet_swap::WeightInfo<Runtime>;
+	type WeightPrecision = WeightPrecision;
+	type BNCAssetId = BNCAssetId;
+	type InitialPoolSupply = InitialPoolSupply;
+	type NumberOfSupportedTokens = NumberOfSupportedTokens;
+	type BonusClaimAgeDenominator = BonusClaimAgeDenominator;
+	type MaximumPassedInPoolTokenShares = MaximumPassedInPoolTokenShares;
 }
 // bifrost runtime end
+
+// culumus runtime start
+impl cumulus_parachain_upgrade::Trait for Runtime {
+	type Event = Event;
+	type OnValidationData = ();
+}
+
+impl parachain_info::Trait for Runtime {}
+// culumus runtime end
 
 construct_runtime!(
 	pub enum Runtime where
@@ -984,7 +1008,9 @@ construct_runtime!(
 		Authorship: pallet_authorship::{Module, Call, Storage, Inherent},
 		Indices: pallet_indices::{Module, Call, Storage, Config<T>, Event<T>},
 		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
+		ParachainInfo: parachain_info::{Module, Storage, Config},
 		Staking: pallet_staking::{Module, Call, Config<T>, Storage, Event<T>, ValidateUnsigned},
 		Session: pallet_session::{Module, Call, Storage, Event, Config<T>},
 		Democracy: pallet_democracy::{Module, Call, Storage, Config, Event<T>},
@@ -1012,13 +1038,13 @@ construct_runtime!(
 		Convert: brml_convert::{Module, Call, Storage, Event, Config<T>},
 		BridgeEos: brml_bridge_eos::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
 		BridgeIost: brml_bridge_iost::{Module, Call, Storage, Event<T>, Config<T>},
-		Swap: brml_swap::{Module, Call, Storage, Event<T>, Config<T>},
+		Swap: brml_swap::{Module, Call, Storage, Event<T>},
 		Voucher: brml_voucher::{Module, Call, Storage, Event<T>, Config<T>},
 	}
 );
 
 /// The address format for describing accounts.
-pub type Address = <Indices as StaticLookup>::Source;
+pub type Address = sp_runtime::MultiAddress<AccountId, AccountIndex>;
 /// Block header type as expected by this runtime.
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 /// Block type as expected by this runtime.
@@ -1297,6 +1323,8 @@ impl_runtime_apis! {
 		}
 	}
 }
+
+cumulus_runtime::register_validate_block!(Block, Executive);
 
 #[cfg(test)]
 mod tests {
