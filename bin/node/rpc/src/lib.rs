@@ -27,8 +27,6 @@
 //! are part of it. Therefore all node-runtime-specific RPCs can
 //! be placed here or imported from corresponding FRAME RPC definitions.
 
-#![warn(missing_docs)]
-
 use std::sync::Arc;
 
 use sp_keystore::SyncCryptoStorePtr;
@@ -49,6 +47,8 @@ use sp_consensus_babe::BabeApi;
 use sc_rpc::SubscriptionTaskExecutor;
 use sp_transaction_pool::TransactionPool;
 use sc_client_api::AuxStore;
+
+pub type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 /// Light client extra dependencies.
 pub struct LightDeps<C, F, P> {

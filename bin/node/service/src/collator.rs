@@ -110,6 +110,7 @@ async fn start_node_impl<RB>(
 	validator: bool,
 	rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, RococoExecutor>>)>
+// ) -> sc_service::error::Result<NewFull<TFullClient<Block, RuntimeApi, RococoExecutor>>>
 	where
 		RB: Fn(
 			Arc<TFullClient<Block, RuntimeApi, RococoExecutor>>,
@@ -164,7 +165,7 @@ async fn start_node_impl<RB>(
 	let rpc_client = client.clone();
 	let rpc_extensions_builder = Box::new(move |_, _| rpc_ext_builder(rpc_client.clone()));
 
-	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+	let _ = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
 		remote_blockchain: None,
 		rpc_extensions_builder,
@@ -176,7 +177,7 @@ async fn start_node_impl<RB>(
 		keystore: params.keystore_container.sync_keystore(),
 		backend: backend.clone(),
 		network: network.clone(),
-		network_status_sinks,
+		network_status_sinks: network_status_sinks.clone(),
 		system_rpc_tx,
 	})?;
 
@@ -208,7 +209,7 @@ async fn start_node_impl<RB>(
 			collator_key,
 			polkadot_full_node,
 			spawner,
-			backend,
+			backend: backend.clone(),
 			polkadot_backend,
 		};
 

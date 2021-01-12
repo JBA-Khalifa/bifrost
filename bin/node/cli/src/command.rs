@@ -186,7 +186,7 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&*cli.run)?;
 			runner.run_node_until_exit(|config| async move {
 				match config.role {
-					Role::Light => service::build_light(config),
+					Role::Light => service::build_light(config).map(|light| light.0),
 					_ => {
 						if config.chain_spec.is_rococo() {
 							let key = sp_core::Pair::generate().0;
@@ -223,10 +223,9 @@ pub fn run() -> Result<()> {
 							info!("Parachain genesis state: {}", genesis_state);
 							info!("Is collating: {}", if collator { "yes" } else { "no" });
 
-							service::collator::start_node(config, key, polkadot_config, id, collator)
-								.await
+							service::collator::start_node(config, key, polkadot_config, id, collator).await
 						} else {
-							service::build_full(config)
+							service::build_full(config, None)
 						}
 					},
 				}
