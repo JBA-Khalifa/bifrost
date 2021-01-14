@@ -243,7 +243,8 @@ pub fn development_config(id: ParaId) -> Result<ChainSpec, String> {
 		ChainType::Development,
 		move || development_config_genesis(wasm_binary, id),
 		vec![],
-		None,
+		Some(TelemetryEndpoints::new(vec![(STAGING_TELEMETRY_URL.to_string(), 0)])
+			.expect("Bifrost PC1 Testnet telemetry url is valid; qed")),
 		Some(DEFAULT_PROTOCOL_ID),
 		None,
 		RelayExtensions {
@@ -270,9 +271,9 @@ pub fn local_testnet_config(id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Bifrost PC1 development wasm not available")?;
 
 	Ok(ChainSpec::from_genesis(
-		"Bifrost PC1 Local Testnet",
-		"bifrost_pc1_local_testnet",
-		ChainType::Local,
+		"Bifrost PC1 Testnet",
+		"bifrost_pc1_testnet",
+		ChainType::Live,
 		move || local_testnet_genesis(wasm_binary, id),
 		vec![],
 		None,
@@ -319,8 +320,7 @@ pub fn chainspec_config(id: ParaId) -> ChainSpec {
 			"/dns/n4.testnet.liebi.com/tcp/30333/p2p/12D3KooWMduQkmRVzpwxJuN6MQT4ex1iP9YquzL4h5K9Ru8qMXtQ".parse().expect("failed to parse multiaddress."),
 			"/dns/n5.testnet.liebi.com/tcp/30333/p2p/12D3KooWLAHZyqMa9TQ1fR7aDRRKfWt857yFMT3k2ckK9mhYT9qR".parse().expect("failed to parse multiaddress.")
 		],
-		Some(TelemetryEndpoints::new(vec![(STAGING_TELEMETRY_URL.to_string(), 0)])
-			.expect("Bifrost PC1 Testnet telemetry url is valid; qed")),
+		None,
 		protocol_id,
 		properties,
 		RelayExtensions {
