@@ -99,6 +99,23 @@ pub type BiddingOrderId = u64;
 ///
 pub type EraId = u32;
 
+/// This enum is to mark current storage version of pallet.
+/// And it's convenient for upgrading pallet storage.
+#[derive(Encode, Decode, Clone, Copy, Eq, PartialEq, Debug)]
+#[cfg_attr(feature = "std", derive(serde::Deserialize, serde::Serialize))]
+#[non_exhaustive]
+pub enum PalletStorageVersion {
+	V0,
+	V1,
+	V2,
+	V3,
+}
+
+impl Default for PalletStorageVersion {
+	fn default() -> Self {
+		Self::V0
+	}
+}
 
 #[derive(Encode, Decode, Clone, Copy, Eq, PartialEq, Debug)]
 #[cfg_attr(feature = "std", derive(serde::Deserialize, serde::Serialize))]
