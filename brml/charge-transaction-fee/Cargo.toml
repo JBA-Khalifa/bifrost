@@ -14,6 +14,7 @@ sp-runtime = { version = "3.0.0", default-features = false }
 sp-std = { version = "3.0.0", default-features = false }
 pallet-transaction-payment = { version = "3.0.0", default-features = false }
 zenlink-protocol = {package = "zenlink-protocol", path = "../../../Zenlink-DEX-Module/zenlink-protocol"}
+smallvec = "1.4.1"
 
 [dev-dependencies]
 assets = { package = "brml-assets", path = "../assets" }

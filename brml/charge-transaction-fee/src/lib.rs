@@ -40,6 +40,7 @@ pub use pallet::*;
 
 use pallet_transaction_payment::OnChargeTransaction;
 
+mod default_weight;
 mod mock;
 mod tests;
 
@@ -53,7 +54,7 @@ pub mod pallet {
 
     #[pallet::config]
     // pub trait Config: frame_system::Config + zenlink_protocol::Config {
-    pub trait Config: frame_system::Config {
+    pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
         /// The arithmetic type of asset identifier.
         type AssetId: Member + Parameter + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
         /// The units in which we record balances.
@@ -63,7 +64,6 @@ pub mod pallet {
             + Default
             + Copy
             + MaybeSerializeDeserialize
-            + From<u128>
             + Into<u128>
             + From<PalletBalanceOf<Self>>;
         /// Weight information for the extrinsics in this module.
@@ -91,7 +91,12 @@ pub mod pallet {
     >>::PositiveImbalance;
 
     #[pallet::hooks]
-    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        // #[cfg(feature = "std")]
+        // fn integrity_test() {
+        //     T::Balance::from(0 as u32); // mock
+        // }
+    }
 
     #[pallet::type_value]
     pub fn DefaultFeeChargeOrder<T: Config>() -> Vec<T::AssetId> {
@@ -157,8 +162,8 @@ impl<T: Config> Pallet<T> {
         // charge the fee by the order of the above order list.
         // first to check whether the user has the asset. If no, pass it. If yes, try to make transaction in the DEX in exchange for BNC
         for asset_id in user_fee_charge_order_list {
-            let asset_balance = (T::AssetTrait::get_account_asset(asset_id, who)).available;
-            if !(asset_balance == Zero::zero()) {
+            let asset_balance = T::AssetTrait::get_account_asset(asset_id, who).available;
+            if asset_balance != Zero::zero() {
                 // if it is the mainnet currency
                 if asset_id == T::NativeCurrencyId::get() {
                     // check native balance if is enough
@@ -209,7 +214,15 @@ impl<T: Config> Pallet<T> {
     }
 }
 
-impl<T: Config + pallet_transaction_payment::Config> OnChargeTransaction<T> for Pallet<T> {
+/// Default implementation for a Currency and an OnUnbalanced handler.
+impl<T> OnChargeTransaction<T> for Pallet<T>
+where
+    T: Config,
+    T::TransactionByteFee: Get<PalletBalanceOf<T>>,
+    T::Currency: Currency<<T as frame_system::Config>::AccountId>,
+    PositiveImbalanceOf<T>: Imbalance<PalletBalanceOf<T>, Opposite = NegativeImbalanceOf<T>>,
+    NegativeImbalanceOf<T>: Imbalance<PalletBalanceOf<T>, Opposite = PositiveImbalanceOf<T>>,
+{
     type LiquidityInfo = Option<NegativeImbalanceOf<T>>;
     type Balance = PalletBalanceOf<T>;
 
@@ -235,10 +248,10 @@ impl<T: Config + pallet_transaction_payment::Config> OnChargeTransaction<T> for 
         // Make sure there are enough BNC to be deducted if the user has assets in other form of tokens rather than BNC.
         Self::ensure_can_charge_fee(who, fee, withdraw_reason);
 
-        match <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::withdraw(who, fee, withdraw_reason, ExistenceRequirement::KeepAlive) {
-			Ok(imbalance) => Ok(Some(imbalance)),
-			Err(_) => Err(InvalidTransaction::Payment.into()),
-		}
+        match T::Currency::withdraw(who, fee, withdraw_reason, ExistenceRequirement::KeepAlive) {
+            Ok(imbalance) => Ok(Some(imbalance)),
+            Err(_) => Err(InvalidTransaction::Payment.into()),
+        }
     }
 
     /// Hand the fee and the tip over to the `[OnUnbalanced]` implementation.

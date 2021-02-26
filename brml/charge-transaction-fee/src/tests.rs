@@ -19,25 +19,23 @@
 #![cfg(test)]
 
 use crate::mock::*;
-use crate::*;
 use frame_support::assert_ok;
 use node_primitives::AssetId;
 
 #[test]
 fn set_user_fee_charge_order_should_work() {
     new_test_ext().execute_with(|| {
-        let Alice: u64 = 1;
-        let Origin_signed = frame_system::Origin::Signed(Alice);
+        let alice: u64 = 1;
+        let origin_signed = Origin::signed(alice);
         let asset_id_0: AssetId = 0;
         let asset_id_1: AssetId = 1;
         let asset_id_2: AssetId = 2;
         let asset_id_3: AssetId = 3;
         let asset_id_4: AssetId = 4;
-        let mut asset_order_list_vec =
-            vec![asset_id_4, asset_id_3, asset_id_2, asset_id_1, asset_id_0];
+        let asset_order_list_vec = vec![asset_id_4, asset_id_3, asset_id_2, asset_id_1, asset_id_0];
         assert_ok!(ChargeTransactionFee::set_user_fee_charge_order(
-            Origin_signed,
-            asset_order_list_vec
+            origin_signed,
+            Some(asset_order_list_vec)
         ));
     });
 }

@@ -18,14 +18,22 @@
 
 use super::*;
 use crate as charge_transaction_fee;
-use frame_support::parameter_types;
+use frame_support::{
+    parameter_types,
+    weights::{IdentityFee, WeightToFeeCoefficients, WeightToFeePolynomial},
+};
 use frame_system as system;
+use smallvec::smallvec;
+use sp_std::cell::RefCell;
+// use node_primitives::Balance;
 use sp_core::H256;
 use sp_runtime::{
     testing::Header,
     traits::{BlakeTwo256, IdentityLookup},
+    Perbill,
 };
 
+pub type Balance = u64;
 pub type Block = sp_runtime::generic::Block<Header, UncheckedExtrinsic>;
 pub type UncheckedExtrinsic = sp_runtime::generic::UncheckedExtrinsic<u32, u64, Call, ()>;
 
@@ -39,6 +47,7 @@ frame_support::construct_runtime!(
         System: system::{Module, Call, Storage, Event<T>},
         Assets: assets::{Module, Call, Storage, Event<T>, Config<T>},
         Balances: balances::{Module, Call, Storage, Event<T>},
+        // TransactionPayment: pallet_transaction_payment::{Module, Storage},
         ChargeTransactionFee: charge_transaction_fee::{Module, Call, Storage},
     }
 );
@@ -70,6 +79,35 @@ impl system::Config for Test {
     type OnKilledAccount = ();
     type SystemWeightInfo = ();
     type SS58Prefix = ();
+}
+
+thread_local! {
+    static WEIGHT_TO_FEE: RefCell<u128> = RefCell::new(1);
+}
+
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+    type Balance = u128;
+
+    fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+        smallvec![frame_support::weights::WeightToFeeCoefficient {
+            degree: 1,
+            coeff_frac: Perbill::zero(),
+            coeff_integer: WEIGHT_TO_FEE.with(|v| *v.borrow()),
+            negative: false,
+        }]
+    }
+}
+
+parameter_types! {
+    pub const TransactionByteFee: Balance = 1;
+}
+
+impl pallet_transaction_payment::Config for Test {
+    type OnChargeTransaction = ChargeTransactionFee;
+    type TransactionByteFee = TransactionByteFee;
+    type WeightToFee = IdentityFee<Balance>;
+    type FeeMultiplierUpdate = ();
 }
 
 parameter_types! {
@@ -107,7 +145,7 @@ impl crate::Config for Test {
     type WeightInfo = ();
     type AssetTrait = Assets;
     type Currency = Balances;
-    type OnUnbalanced = Balances;
+    type OnUnbalanced = ();
     type NativeCurrencyId = NativeCurrencyId;
 }
 
