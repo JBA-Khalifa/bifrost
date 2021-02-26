@@ -817,6 +817,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "brml-charge-transaction-fee"
+version = "0.6.0"
+dependencies = [
+ "brml-assets",
+ "float-cmp",
+ "frame-support",
+ "frame-system",
+ "node-primitives",
+ "pallet-balances",
+ "pallet-transaction-payment",
+ "parity-scale-codec 2.0.0",
+ "serde",
+ "smallvec 1.6.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "zenlink-protocol",
+]
+
+[[package]]
 name = "brml-staking-reward"
 version = "0.7.0"
 dependencies = [

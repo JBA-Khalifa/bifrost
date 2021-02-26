@@ -12,6 +12,7 @@ members = [
 	"brml/assets",
 	"brml/assets/rpc",
 	"brml/bid",
+	"brml/charge-transaction-fee",
 	"brml/bridge-eos",
 	"brml/vtoken-mint",
 	"brml/vtoken-mint/rpc",
