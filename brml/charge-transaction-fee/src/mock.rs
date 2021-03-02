@@ -149,16 +149,16 @@ impl crate::Config for Test {
     type NativeCurrencyId = NativeCurrencyId;
 }
 
-// simulate block production
-pub(crate) fn run_to_block(n: u64) {
-    while System::block_number() < n {
-        ChargeTransactionFee::on_finalize(System::block_number());
-        System::on_finalize(System::block_number());
-        System::set_block_number(System::block_number() + 1);
-        System::on_initialize(System::block_number());
-        ChargeTransactionFee::on_initialize(System::block_number());
-    }
-}
+// // simulate block production
+// pub(crate) fn run_to_block(n: u64) {
+//     while System::block_number() < n {
+//         ChargeTransactionFee::on_finalize(System::block_number());
+//         System::on_finalize(System::block_number());
+//         System::set_block_number(System::block_number() + 1);
+//         System::on_initialize(System::block_number());
+//         ChargeTransactionFee::on_initialize(System::block_number());
+//     }
+// }
 
 // Build genesis storage according to the mock runtime.
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

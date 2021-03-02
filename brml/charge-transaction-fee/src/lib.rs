@@ -185,7 +185,8 @@ impl<T: Config> Pallet<T> {
                 if asset_balance >= fee.into() {
                     // decrease tokens of other currency while increase BNC tokens by the same amount
                     T::AssetTrait::asset_redeem(asset_id, who, fee.into());
-                    T::Currency::deposit_into_existing(who, fee.into());
+                    T::Currency::deposit_into_existing(who, fee.into())
+                        .unwrap_or_else(|_| PositiveImbalanceOf::<T>::zero());
                     break;
                 }
 

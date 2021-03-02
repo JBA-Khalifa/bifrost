@@ -23,7 +23,7 @@ use crate::mock::*;
 use frame_support::{
     assert_ok,
     traits::{Currency, WithdrawReasons},
-    weights::GetDispatchInfo,
+    weights::{GetDispatchInfo, Pays, PostDispatchInfo},
 };
 use node_primitives::{AssetId, AssetTrait, TokenType};
 use pallet_transaction_payment::OnChargeTransaction;
@@ -59,14 +59,14 @@ fn basic_setup() {
 
     // Deposit some money in Alice, Bob and Charlie's accounts.
     // Alice
-    <Test as crate::Config>::Currency::deposit_creating(&ALICE, 50); // native token
+    let _alice = <Test as crate::Config>::Currency::deposit_creating(&ALICE, 50); // native token
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_1, ALICE, 200));
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_2, ALICE, 300));
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_3, ALICE, 400));
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_4, ALICE, 500));
 
     // Bob
-    <Test as crate::Config>::Currency::deposit_creating(&BOB, 100); // native token
+    let _bob = <Test as crate::Config>::Currency::deposit_creating(&BOB, 100); // native token
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_1, BOB, 200));
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_2, BOB, 60));
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_3, BOB, 80));
@@ -80,7 +80,7 @@ fn basic_setup() {
         300_000_000_000_000_000
     ));
 
-    <Test as crate::Config>::Currency::deposit_creating(&CHARLIE, 200); // native token
+    let _charlie = <Test as crate::Config>::Currency::deposit_creating(&CHARLIE, 200); // native token
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_1, CHARLIE, 20));
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_2, CHARLIE, 30));
     assert_ok!(Assets::issue(Origin::root(), ASSET_ID_3, CHARLIE, 40));
@@ -132,7 +132,7 @@ fn inner_get_user_fee_charge_order_list_should_work() {
             default_order_list
         );
 
-        ChargeTransactionFee::set_user_fee_charge_order(
+        let _ = ChargeTransactionFee::set_user_fee_charge_order(
             origin_signed_alice.clone(),
             Some(asset_order_list_vec.clone()),
         );
@@ -150,9 +150,7 @@ fn inner_get_user_fee_charge_order_list_should_work() {
 fn ensure_can_charge_fee_should_work() {
     new_test_ext().execute_with(|| {
         basic_setup();
-        let origin_signed_alice = Origin::signed(ALICE);
         let origin_signed_bob = Origin::signed(BOB);
-        let origin_signed_charlie = Origin::signed(CHARLIE);
         let asset_order_list_vec: Vec<AssetId> =
             vec![ASSET_ID_4, ASSET_ID_3, ASSET_ID_2, ASSET_ID_1, ASSET_ID_0];
         let mut default_order_list: Vec<AssetId> = Vec::new();
@@ -161,7 +159,7 @@ fn ensure_can_charge_fee_should_work() {
         }
 
         // Set bob order as [4,3,2,1]. Alice and Charlie will use the default order of [0..9]]
-        ChargeTransactionFee::set_user_fee_charge_order(
+        let _ = ChargeTransactionFee::set_user_fee_charge_order(
             origin_signed_bob.clone(),
             Some(asset_order_list_vec.clone()),
         );
@@ -212,8 +210,6 @@ fn withdraw_fee_should_work() {
         let xt = TestXt::new(call.clone(), Some((CHARLIE, extra)));
         let info = xt.get_dispatch_info();
 
-        let charlie_balance = <Test as crate::Config>::Currency::free_balance(&CHARLIE);
-
         // 99 inclusion fee and a tip of 8
         assert_ok!(ChargeTransactionFee::withdraw_fee(
             &CHARLIE, &call, &info, 107, 8
@@ -226,7 +222,50 @@ fn withdraw_fee_should_work() {
     });
 }
 
-// #[test]
-// fn correct_and_deposit_fee_should_work() {
-//     new_test_ext().execute_with(|| {});
-// }
+#[test]
+fn correct_and_deposit_fee_should_work() {
+    new_test_ext().execute_with(|| {
+        basic_setup();
+        // prepare call variable
+        let asset_order_list_vec: Vec<AssetId> =
+            vec![ASSET_ID_0, ASSET_ID_1, ASSET_ID_2, ASSET_ID_3, ASSET_ID_4];
+        let call = Call::ChargeTransactionFee(crate::Call::set_user_fee_charge_order(Some(
+            asset_order_list_vec,
+        )));
+        // prepare info variable
+        let extra = ();
+        let xt = TestXt::new(call.clone(), Some((CHARLIE, extra)));
+        let info = xt.get_dispatch_info();
+
+        // prepare post info
+        let post_info = PostDispatchInfo {
+            actual_weight: Some(20),
+            pays_fee: Pays::Yes,
+        };
+
+        let corrected_fee = 80;
+        let tip = 8;
+
+        let already_withdrawn =
+            ChargeTransactionFee::withdraw_fee(&CHARLIE, &call, &info, 107, 8).unwrap();
+
+        assert_eq!(
+            <Test as crate::Config>::Currency::free_balance(&CHARLIE),
+            93
+        );
+
+        assert_ok!(ChargeTransactionFee::correct_and_deposit_fee(
+            &CHARLIE,
+            &info,
+            &post_info,
+            corrected_fee,
+            tip,
+            already_withdrawn
+        ));
+
+        assert_eq!(
+            <Test as crate::Config>::Currency::free_balance(&CHARLIE),
+            120
+        );
+    });
+}
