@@ -32,4 +32,6 @@ std = [
 	"node-primitives/std",
 	"serde/std",
 	"sp-runtime/std",
+	"sp-std/std",
+	"pallet-transaction-payment/std"
 ]

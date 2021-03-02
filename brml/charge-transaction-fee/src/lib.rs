@@ -91,12 +91,7 @@ pub mod pallet {
     >>::PositiveImbalance;
 
     #[pallet::hooks]
-    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-        // #[cfg(feature = "std")]
-        // fn integrity_test() {
-        //     T::Balance::from(0 as u32); // mock
-        // }
-    }
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
     #[pallet::type_value]
     pub fn DefaultFeeChargeOrder<T: Config>() -> Vec<T::AssetId> {
@@ -133,6 +128,7 @@ pub mod pallet {
             let who = ensure_signed(origin)?;
 
             if let Some(mut asset_order_list) = asset_order_list_vec {
+                asset_order_list.insert(0, T::NativeCurrencyId::get());
                 asset_order_list.dedup();
                 UserFeeChargeOrderList::<T>::insert(&who, asset_order_list);
             } else {
@@ -162,53 +158,51 @@ impl<T: Config> Pallet<T> {
         // charge the fee by the order of the above order list.
         // first to check whether the user has the asset. If no, pass it. If yes, try to make transaction in the DEX in exchange for BNC
         for asset_id in user_fee_charge_order_list {
-            let asset_balance = T::AssetTrait::get_account_asset(asset_id, who).available;
-            if asset_balance != Zero::zero() {
-                // if it is the mainnet currency
-                if asset_id == T::NativeCurrencyId::get() {
-                    // check native balance if is enough
-                    let native_is_enough = <<T as Config>::Currency as Currency<
-                        <T as frame_system::Config>::AccountId,
-                    >>::free_balance(who)
-                    .checked_sub(&fee)
-                    .map_or(false, |new_free_balance| {
-                        <<T as Config>::Currency as Currency<
-                            <T as frame_system::Config>::AccountId,
-                        >>::ensure_can_withdraw(
-                            who, fee, reason, new_free_balance
-                        )
-                        .is_ok()
-                    });
-                    if native_is_enough {
-                        // native balance is enough, break iteration
-                        break;
-                    }
-                } else {
-                    // if it is other kind of currencies
-
-                    // mock
-                    if asset_balance >= fee.into() {
-                        // decrease tokens of other currency while increase BNC tokens by the same amount
-                        T::AssetTrait::asset_redeem(asset_id, who, asset_balance);
-                        T::AssetTrait::asset_issue(T::NativeCurrencyId::get(), who, asset_balance);
-                        break;
-                    }
-
-                    // let path = vec![asset_id, T::NativeCurrencyId::get()];
-
-                    // if zenlink_protocol::Module::<T>::inner_swap_tokens_for_exact_tokens(
-                    //     who,
-                    //     T::Balance::from(fee).into(),
-                    //     asset_balance.into(),
-                    //     &path,
-                    //     who,
-                    // )
-                    // .is_ok()
-                    // {
-                    //     // successfully swap, break iteration
-                    //     break;
-                    // }
+            // If it is mainnet currency
+            if asset_id == T::NativeCurrencyId::get() {
+                // check native balance if is enough
+                let native_is_enough = <<T as Config>::Currency as Currency<
+                    <T as frame_system::Config>::AccountId,
+                >>::free_balance(who)
+                .checked_sub(&fee)
+                .map_or(false, |new_free_balance| {
+                    <<T as Config>::Currency as Currency<
+                                                <T as frame_system::Config>::AccountId,
+                                            >>::ensure_can_withdraw(
+                                                who, fee, reason, new_free_balance
+                                            )
+                                            .is_ok()
+                });
+                if native_is_enough {
+                    // native balance is enough, break iteration
+                    break;
                 }
+            } else {
+                // If it is other assets
+                let asset_balance = T::AssetTrait::get_account_asset(asset_id, who).available;
+
+                // mock
+                if asset_balance >= fee.into() {
+                    // decrease tokens of other currency while increase BNC tokens by the same amount
+                    T::AssetTrait::asset_redeem(asset_id, who, fee.into());
+                    T::Currency::deposit_into_existing(who, fee.into());
+                    break;
+                }
+
+                // let path = vec![asset_id, T::NativeCurrencyId::get()];
+
+                // if zenlink_protocol::Module::<T>::inner_swap_tokens_for_exact_tokens(
+                //     who,
+                //     T::Balance::from(fee).into(),
+                //     asset_balance.into(),
+                //     &path,
+                //     who,
+                // )
+                // .is_ok()
+                // {
+                //     // successfully swap, break iteration
+                //     break;
+                // }
             }
         }
     }
