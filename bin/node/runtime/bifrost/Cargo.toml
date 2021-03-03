@@ -82,6 +82,8 @@ brml-vtoken-mint-rpc-runtime-api = { path = "../../../../brml/vtoken-mint/rpc/ru
 brml-staking-reward = { path = "../../../../brml/staking-reward", default-features = false }
 brml-swap = { path = "../../../../brml/swap", default-features = false }
 brml-voucher = { path = "../../../../brml/voucher", default-features = false }
+brml-charge-transaction-fee = { path = "../../../../brml/charge-transaction-fee", default-features = false }
+brml-charge-transaction-fee-rpc-runtime-api = { path = "../../../../brml/charge-transaction-fee/rpc/runtime-api", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0" }
@@ -156,6 +158,8 @@ std = [
 	'brml-staking-reward/std',
 	"brml-swap/std",
 	'brml-voucher/std',
+	"brml-charge-transaction-fee/std",
+	"brml-charge-transaction-fee-rpc-runtime-api/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",

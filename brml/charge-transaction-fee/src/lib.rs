@@ -207,6 +207,46 @@ impl<T: Config> Pallet<T> {
             }
         }
     }
+
+    /// This function is for runtime-api to call
+    pub fn cal_fee_token_and_amount(
+        who: &T::AccountId,
+        fee: PalletBalanceOf<T>,
+    ) -> (T::AssetId, T::Balance) {
+        let mut fee_token_id_out: T::AssetId = T::NativeCurrencyId::get();
+        let mut fee_token_amount_out: T::Balance = T::Balance::from(0 as u32);
+
+        // get the user defined fee charge order list.
+        let user_fee_charge_order_list = Self::inner_get_user_fee_charge_order_list(who);
+
+        // charge the fee by the order of the above order list.
+        // first to check whether the user has the asset. If no, pass it. If yes, try to make transaction in the DEX in exchange for BNC
+        for asset_id in user_fee_charge_order_list {
+            // If it is mainnet currency
+            if asset_id == T::NativeCurrencyId::get() {
+                // check native balance if is enough
+                let native_balance = <<T as Config>::Currency as Currency<
+                    <T as frame_system::Config>::AccountId,
+                >>::free_balance(who);
+
+                if native_balance >= fee.into() {
+                    fee_token_amount_out = fee.into();
+                    break;
+                }
+            } else {
+                // If it is other assets
+                let asset_balance = T::AssetTrait::get_account_asset(asset_id, who).available;
+
+                // mock
+                if asset_balance >= fee.into() {
+                    fee_token_id_out = asset_id;
+                    fee_token_amount_out = fee.into();
+                    break;
+                }
+            }
+        }
+        (fee_token_id_out, fee_token_amount_out)
+    }
 }
 
 /// Default implementation for a Currency and an OnUnbalanced handler.

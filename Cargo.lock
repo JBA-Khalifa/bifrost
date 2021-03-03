@@ -155,6 +155,8 @@ dependencies = [
  "brml-assets",
  "brml-assets-rpc-runtime-api",
  "brml-bid",
+ "brml-charge-transaction-fee",
+ "brml-charge-transaction-fee-rpc-runtime-api",
  "brml-staking-reward",
  "brml-swap",
  "brml-voucher",
@@ -480,6 +482,8 @@ dependencies = [
  "brml-assets",
  "brml-assets-rpc-runtime-api",
  "brml-bid",
+ "brml-charge-transaction-fee",
+ "brml-charge-transaction-fee-rpc-runtime-api",
  "brml-staking-reward",
  "brml-swap",
  "brml-voucher",
@@ -818,7 +822,7 @@ dependencies = [
 
 [[package]]
 name = "brml-charge-transaction-fee"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "brml-assets",
  "float-cmp",
@@ -835,6 +839,14 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "zenlink-protocol",
+]
+
+[[package]]
+name = "brml-charge-transaction-fee-rpc-runtime-api"
+version = "0.7.0"
+dependencies = [
+ "parity-scale-codec 2.0.0",
+ "sp-api",
 ]
 
 [[package]]
@@ -7317,6 +7329,8 @@ dependencies = [
  "brml-assets",
  "brml-assets-rpc-runtime-api",
  "brml-bid",
+ "brml-charge-transaction-fee",
+ "brml-charge-transaction-fee-rpc-runtime-api",
  "brml-staking-reward",
  "brml-swap",
  "brml-voucher",

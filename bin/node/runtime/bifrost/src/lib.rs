@@ -393,7 +393,8 @@ parameter_types! {
 }
 
 impl pallet_transaction_payment::Config for Runtime {
-	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees>;
+	// type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees>;
+	type OnChargeTransaction = ChargeTransactionFee;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate =
@@ -1079,6 +1080,21 @@ impl brml_staking_reward::Config for Runtime {
 	type Balance = Balance;
 	type AssetId = AssetId;
 }
+
+parameter_types! {
+	pub const NativeCurrencyId: u32 = 0;
+}
+
+impl brml_charge_transaction_fee::Config for Runtime {
+	type AssetId = AssetId;
+	type Balance = Balance;
+	type WeightInfo = ();
+	type AssetTrait = Assets;
+	type Currency = Balances;
+	type OnUnbalanced = DealWithFees;
+	// type OnUnbalanced = ();
+	type NativeCurrencyId = NativeCurrencyId;
+}
 // bifrost runtime end
 
 construct_runtime!(
@@ -1465,6 +1481,12 @@ impl_runtime_apis! {
 	impl brml_vtoken_mint_rpc_runtime_api::VtokenMintPriceApi<node_primitives::Block, AssetId, node_primitives::VtokenMintPrice> for Runtime {
 		fn get_vtoken_mint_rate(asset_id: AssetId) -> node_primitives::VtokenMintPrice {
 			VtokenMint::get_vtoken_mint_price(asset_id)
+		}
+	}
+
+	impl brml_charge_transaction_fee_rpc_runtime_api::TransactionPaymentApiChargeTransactionFeeRuntimeApi<Block, AssetId, AccountId, Balance> for Runtime {
+		fn get_fee_token_and_amount(who: AccountId, fee: Balance) -> (AssetId, Balance) {
+			ChargeTransactionFee::cal_fee_token_and_amount(&who, fee)
 		}
 	}
 }
