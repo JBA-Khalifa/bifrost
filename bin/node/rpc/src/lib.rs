@@ -35,7 +35,7 @@
 
 use std::sync::Arc;
 
-use node_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Index};
+use node_primitives::{AccountId, AssetId, Balance, Block, BlockNumber, Hash, Index};
 use sc_client_api::AuxStore;
 use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;
@@ -127,6 +127,7 @@ where
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: BabeApi<Block>,
 	C::Api: BlockBuilder<Block>,
+	// C::Api: brml_charge_transaction_fee_rpc::FeeRuntimeApi<Block, AssetId, AccountId, Balance>,
 	P: TransactionPool + 'static,
 	SC: SelectChain<Block> + 'static,
 	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
@@ -193,20 +194,18 @@ where
 	io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
 		sc_sync_state_rpc::SyncStateRpcHandler::new(
 			chain_spec,
-			client,
+			client.clone(),
 			shared_authority_set,
 			shared_epoch_changes,
 			deny_unsafe,
 		),
 	));
 
-	io.extend_with(brml_charge_transaction_fee_rpc::FeeRpcApi::to_delegate(
-		brml_charge_transaction_fee_rpc::ChargeTransactionFeeStruct::new(
-			client.clone(),
-			pool,
-			deny_unsafe,
-		),
-	));
+	// io.extend_with(brml_charge_transaction_fee_rpc::FeeRpcApi::to_delegate(
+	// 	brml_charge_transaction_fee_rpc::ChargeTransactionFeeStruct::new(
+	// 		client
+	// 	),
+	// ));
 
 	io
 }

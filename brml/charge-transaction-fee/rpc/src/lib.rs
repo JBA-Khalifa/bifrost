@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Bifrost.  If not, see <http://www.gnu.org/licenses/>.
 
-use codec::Codec;
+use codec::{Codec, Decode};
 use jsonrpc_core::{Error as RpcError, ErrorCode, Result as JsonRpcResult};
 use jsonrpc_derive::rpc;
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_core::Bytes;
-use sp_runtime::{generic::BlockId, traits::Block as BlockT};
+use sp_runtime::{generic::BlockId, traits::{Block as BlockT, Zero}};
 use std::marker::PhantomData;
 use std::sync::Arc;
 
@@ -49,10 +49,30 @@ pub trait FeeRpcApi<BlockHash, AssetId, AccountId, Balance> {
     #[rpc(name = "fee_get_token_and_amount")]
     fn get_fee_token_and_amount(
         &self,
+        who: AccountId,
         encoded_xt: Bytes,
         at: Option<BlockHash>,
     ) -> JsonRpcResult<(AssetId, Balance)>;
 }
+
+
+/// Error type of this RPC api.
+pub enum Error {
+	/// The transaction was not decodable.
+	DecodeError,
+	/// The call to runtime failed.
+	RuntimeError,
+}
+
+impl From<Error> for i64 {
+	fn from(e: Error) -> i64 {
+		match e {
+			Error::RuntimeError => 1,
+			Error::DecodeError => 2,
+		}
+	}
+}
+
 
 impl<C, Block, AssetId, AccountId, Balance>
     FeeRpcApi<<Block as BlockT>::Hash, AssetId, AccountId, Balance>
@@ -64,7 +84,7 @@ where
         + TransactionPaymentRuntimeApi<Block, Balance>,
     AccountId: Codec,
     AssetId: Codec,
-    Balance: Codec,
+    Balance: Codec + std::fmt::Display + std::ops::Add<Output = Balance> + sp_runtime::traits::Zero,
 {
     fn get_fee_token_and_amount(
         &self,
@@ -89,13 +109,6 @@ where
                 data: Some(format!("{:?}", e).into()),
             })?;
 
-        let try_into_rpc_balance = |value: Balance| {
-            value.try_into().map_err(|_| RpcError {
-                code: ErrorCode::InvalidParams,
-                message: format!("{} doesn't fit in NumberOrHex representation", value),
-                data: None,
-            })
-        };
         let total_inclusion_fee: Balance = {
             if let Some(inclusion_fee) = fee_details.inclusion_fee {
                 let base_fee = inclusion_fee.base_fee;
@@ -104,7 +117,7 @@ where
 
                 base_fee + len_fee + adjusted_weight_fee
             } else {
-                0
+                Zero::zero()
             }
         };
 

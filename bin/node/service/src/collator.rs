@@ -315,8 +315,15 @@ pub async fn start_node(
 	
 				use zenlink_protocol_rpc::{ZenlinkProtocol, ZenlinkProtocolApi};
 				io.extend_with(ZenlinkProtocolApi::to_delegate(ZenlinkProtocol::new(
-					client,
+					client.clone(),
 				)));
+
+				io.extend_with(brml_charge_transaction_fee_rpc::FeeRpcApi::to_delegate(
+					brml_charge_transaction_fee_rpc::ChargeTransactionFeeStruct::new(
+						client
+					),
+				));
+
 				io
 			},
 		).await.map(|full| full.0)
@@ -332,8 +339,16 @@ pub async fn start_node(
 	
 				use zenlink_protocol_rpc::{ZenlinkProtocol, ZenlinkProtocolApi};
 				io.extend_with(ZenlinkProtocolApi::to_delegate(ZenlinkProtocol::new(
-					client,
+					client.clone(),
 				)));
+
+				io.extend_with(brml_charge_transaction_fee_rpc::FeeRpcApi::to_delegate(
+					brml_charge_transaction_fee_rpc::ChargeTransactionFeeStruct::new(
+						client
+					),
+				));
+
+				// use brml_charge_transaction_fee_rpc::{FeeRuntimeApi};
 				io
 			},
 		).await.map(|full| full.0)

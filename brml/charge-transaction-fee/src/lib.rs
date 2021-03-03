@@ -37,6 +37,7 @@ use frame_support::dispatch::DispatchResultWithPostInfo;
 use frame_system::pallet_prelude::*;
 use node_primitives::AssetTrait;
 pub use pallet::*;
+use sp_std::vec::Vec;
 
 use pallet_transaction_payment::OnChargeTransaction;
 

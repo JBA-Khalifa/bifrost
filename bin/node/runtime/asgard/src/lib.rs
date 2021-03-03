@@ -623,7 +623,7 @@ construct_runtime!(
 		ZenlinkProtocol: zenlink_protocol::{Module, Origin, Call, Storage, Event<T>} = 16,
 
 		// bifrost modules
-		ChargeTransactionFee: brml_charge_transaction_fee::{Module, Call, Storage} = 17;
+		ChargeTransactionFee: brml_charge_transaction_fee::{Module, Call, Storage} = 17,
 	}
 );
 
@@ -895,7 +895,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl brml_charge_transaction_fee_rpc_runtime_api::TransactionPaymentApiChargeTransactionFeeRuntimeApi<Block, AssetId, AccountId, Balance> for Runtime {
+	impl brml_charge_transaction_fee_rpc_runtime_api::ChargeTransactionFeeRuntimeApi<Block, AssetId, AccountId, Balance> for Runtime {
 		fn get_fee_token_and_amount(who: AccountId, fee: Balance) -> (AssetId, Balance) {
 			ChargeTransactionFee::cal_fee_token_and_amount(&who, fee)
 		}

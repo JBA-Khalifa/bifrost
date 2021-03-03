@@ -13,8 +13,7 @@ serde = { version = "1.0.118", optional = true }
 sp-runtime = { version = "3.0.0", default-features = false }
 sp-std = { version = "3.0.0", default-features = false }
 pallet-transaction-payment = { version = "3.0.0", default-features = false }
-zenlink-protocol = {package = "zenlink-protocol", path = "../../../Zenlink-DEX-Module/zenlink-protocol"}
-smallvec = "1.4.1"
+zenlink-protocol = {package = "zenlink-protocol", path = "../../../Zenlink-DEX-Module/zenlink-protocol", default-features = false}
 
 [dev-dependencies]
 assets = { package = "brml-assets", path = "../assets" }
@@ -22,6 +21,8 @@ balances = { package = "pallet-balances", version = "3.0.0", default-features = 
 float-cmp = "0.8.0"
 sp-core = "3.0.0"
 sp-io = "3.0.0"
+smallvec = "1.4.1"
+
 
 [features]
 default = ["std"]
