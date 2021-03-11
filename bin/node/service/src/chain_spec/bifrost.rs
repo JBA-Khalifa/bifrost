@@ -19,14 +19,13 @@ use sc_chain_spec::ChainType;
 use sp_core::{crypto::UncheckedInto, sr25519};
 use sp_runtime::Perbill;
 use telemetry::TelemetryEndpoints;
-use node_primitives::{AccountId};
+use node_primitives::{AccountId, CurrencyId, TokenSymbol};
 use bifrost_runtime::{
-	constants::currency::DOLLARS,
-	AuthorityDiscoveryConfig, BabeConfig, BalancesConfig,
-	CouncilConfig, DemocracyConfig, ElectionsConfig,
+	constants::currency::DOLLARS, AuthorityDiscoveryConfig, BabeConfig, 
+	BalancesConfig, CouncilConfig, DemocracyConfig, ElectionsConfig,
 	GenesisConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, SessionConfig, SessionKeys,
 	SocietyConfig, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig, VoucherConfig,
-	StakerStatus, WASM_BINARY, wasm_binary_unwrap,
+	StakerStatus, WASM_BINARY, wasm_binary_unwrap, VtokenMintConfig
 };
 use crate::chain_spec::{
 	Extensions, BabeId, GrandpaId, ImOnlineId, AuthorityDiscoveryId,
@@ -250,7 +249,15 @@ pub fn testnet_genesis(
 			max_members: 999,
 		}),
 		pallet_vesting: Some(Default::default()),
-		brml_assets: None,
+		orml_tokens: None,
+		brml_vtoken_mint: Some(VtokenMintConfig {
+			pools: vec![
+				(CurrencyId::Token(TokenSymbol::DOT), 1000 * DOLLARS),
+				(CurrencyId::Token(TokenSymbol::vDOT), 2000 * DOLLARS),
+				(CurrencyId::Token(TokenSymbol::ETH), 1000 * DOLLARS),
+				(CurrencyId::Token(TokenSymbol::vETH), 1000 * DOLLARS),
+			]
+		}),
 		brml_voucher: {
 			if let Some(vouchers) = initialize_all_vouchers() {
 				Some(VoucherConfig { voucher: vouchers })
