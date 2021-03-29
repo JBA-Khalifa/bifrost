@@ -36,8 +36,7 @@ use frame_system::{
 pub use node_primitives::{AccountId, Signature};
 use node_primitives::{
 	AccountIndex, Amount, AssetId, Balance, BiddingOrderId, BlockNumber, CurrencyId, EraId, Hash,
-	Index, Moment, Pair, PairId, PoolId, PoolToken, PoolWeight, SwapFee, TokenBalance, TokenSymbol,
-	ZenlinkAssetId,
+	Index, Moment,
 };
 use pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
 pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -45,7 +44,8 @@ use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::traits::{
-	self, BlakeTwo256, Block as BlockT, Convert, SaturatedConversion, StaticLookup, Zero,
+	self, AtLeast32Bit, BlakeTwo256, Block as BlockT, Convert, SaturatedConversion, StaticLookup,
+	Zero,
 };
 use sp_runtime::transaction_validity::{
 	TransactionPriority, TransactionSource, TransactionValidity,
@@ -91,7 +91,9 @@ use orml_xcm_support::{
 };
 
 // zenlink imports
-use zenlink_protocol::{Origin as ZenlinkOrigin, PairInfo, Transactor};
+use zenlink_protocol::{
+	OperationalAsset, Origin as ZenlinkOrigin, PairInfo, TokenBalance, Transactor,
+};
 
 /// Weights for pallets used in the runtime.
 mod weights;
@@ -526,6 +528,21 @@ impl orml_tokens::Config for Runtime {
 	type OnDust = ();
 }
 
+parameter_types! {
+	pub const NativeCurrencyId: CurrencyId = CurrencyId::Token(TokenSymbol::BNC);
+}
+
+impl brml_charge_transaction_fee::Config for Runtime {
+	type Balance = Balance;
+	type WeightInfo = ();
+	type CurrenciesHandler = Currencies;
+	type Currency = Balances;
+	type ZenlinkDEX = ZenlinkProtocol;
+	// type OnUnbalanced = DealWithFees;
+	type OnUnbalanced = ();
+	type NativeCurrencyId = NativeCurrencyId;
+}
+
 // bifrost runtime end
 
 // culumus runtime start
@@ -574,10 +591,7 @@ impl orml_currencies::Config for Runtime {
 }
 
 parameter_types! {
-	pub const RelayChainCurrencyId: CurrencyId = CurrencyId::Token(TokenSymbol::DOT);
 	pub BifrostNetwork: NetworkId = NetworkId::Named("bifrost".into());
-	pub const RococoLocation: MultiLocation = MultiLocation::X1(Junction::Parent);
-	pub const RococoNetwork: NetworkId = NetworkId::Polkadot;
 	pub const DEXModuleId: ModuleId = ModuleId(*b"zenlink1");
 	pub RelayChainOrigin: Origin = ZenlinkOrigin::Relay.into();
 	pub Ancestry: MultiLocation = Junction::Parachain {
@@ -598,24 +612,22 @@ parameter_types! {
 	];
 }
 
-pub type LocationConverter = (
+pub struct AccountId32Converter;
+
+impl Convert<AccountId, [u8; 32]> for AccountId32Converter {
+	fn convert(account_id: AccountId) -> [u8; 32] {
+		account_id.into()
+	}
+}
+
+type LocationConverter = (
 	ParentIsDefault<AccountId>,
 	SiblingParachainConvertsVia<Sibling, AccountId>,
-	ChildParachainConvertsVia<ParaId, AccountId>,
 	AccountId32Aliases<BifrostNetwork, AccountId>,
 );
 
-// pub type LocalAssetTransactor = MultiCurrencyAdapter<
-// 	Currencies,
-// 	IsConcreteWithGeneralKey<CurrencyId, RelayToNative>,
-// 	LocationConverter,
-// 	AccountId,
-// 	CurrencyIdConverter<CurrencyId, RelayChainCurrencyId>,
-// 	CurrencyId,
-// >;
-
 pub type LocalAssetTransactor =
-	Transactor<Balances, ZenlinkProtocol, LocationConverter, AccountId, ParachainInfo>;
+	Transactor<ZenlinkProtocol, LocationConverter, AccountId, ParachainInfo>;
 
 pub type LocalOriginConverter = (
 	SovereignSignedViaLocation<LocationConverter, Origin>,
@@ -624,23 +636,14 @@ pub type LocalOriginConverter = (
 	SignedAccountId32AsNative<BifrostNetwork, Origin>,
 );
 
-parameter_types! {
-	pub NativeOrmlTokens: BTreeSet<(Vec<u8>, MultiLocation)> = {
-		let mut t = BTreeSet::new();
-		//TODO: might need to add other assets based on orml-tokens
-		t.insert(("BNC".into(), (Junction::Parent, Junction::Parachain { id: 107 }).into()));
-		t
-	};
-}
-
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
 	type XcmSender = ZenlinkProtocol;
+	// How to withdraw and deposit an asset.
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = LocalOriginConverter;
-	//TODO: might need to add other assets based on orml-tokens
-	type IsReserve = NativePalletAssetOr<NativeOrmlTokens>;
+	type IsReserve = ParaChainWhiteList<SiblingParachains>;
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 }
@@ -687,8 +690,6 @@ pub type AdaptedBasicCurrency =
 
 impl zenlink_protocol::Config for Runtime {
 	type Event = Event;
-	type MultiCurrency = Assets;
-	type NativeCurrency = AdaptedBasicCurrency;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type UpwardMessageSender = ParachainSystem;
 	type HrmpMessageSender = ParachainSystem;
@@ -697,21 +698,65 @@ impl zenlink_protocol::Config for Runtime {
 	type ParaId = ParachainInfo;
 	type ModuleId = DEXModuleId;
 	type TargetChains = SiblingParachains;
+	type AssetModuleRegistry = AssetModuleRegistry;
+}
+
+// Below are Zenlink proxies to manipulate Bifrost Currencies module
+/// A proxy struct implement `OperationalAsset`. It control `Currencies` module.
+struct CurrenciesProxy {}
+
+impl OperationalAsset<u32, AccountId, TokenBalance> for AssetsProxy {
+	fn balance(&self, id: u32, who: AccountId) -> u128 {
+		let token_symbol: TokenSymbol = (id as u8).into();
+		let currency_id: CurrencyId = token_symbol.into();
+
+		Currencies::free_balance(currency_id, &who)
+	}
+
+	fn total_supply(&self, id: u32) -> u128 {
+		let token_symbol: TokenSymbol = (id as u8).into();
+		let currency_id: CurrencyId = token_symbol.into();
+
+		Currencies::total_issuance(currency_id)
+	}
+
+	fn inner_transfer(
+		&self,
+		id: u32,
+		origin: AccountId,
+		target: AccountId,
+		amount: u128,
+	) -> DispatchResult {
+		let token_symbol: TokenSymbol = (id as u8).into();
+		let currency_id: CurrencyId = token_symbol.into();
+		let balance_amount = amount.unique_saturated_into();
+
+		Currencies::transfer(currency_id, &origin, &target, balance_amount)
+	}
+
+	fn inner_deposit(&self, id: u32, origin: AccountId, amount: u128) -> DispatchResult {
+		let token_symbol: TokenSymbol = (id as u8).into();
+		let currency_id: CurrencyId = token_symbol.into();
+		let balance_amount = amount.unique_saturated_into();
+
+		Currencies::deposit(currency_id, &origin, balance_amount)
+	}
+
+	fn inner_withdraw(&self, id: u32, origin: AccountId, amount: u128) -> DispatchResult {
+		let token_symbol: TokenSymbol = (id as u8).into();
+		let currency_id: CurrencyId = token_symbol.into();
+		let balance_amount = amount.unique_saturated_into();
+
+		Currencies::withdraw(currency_id, &origin, balance_amount)
+	}
 }
 
 parameter_types! {
-	pub const NativeCurrencyId: CurrencyId = CurrencyId::Token(TokenSymbol::BNC);
-}
-
-impl brml_charge_transaction_fee::Config for Runtime {
-	type Balance = Balance;
-	type WeightInfo = ();
-	type CurrenciesHandler = Currencies;
-	type Currency = Balances;
-	type ZenlinkDEX = ZenlinkProtocol;
-	// type OnUnbalanced = DealWithFees;
-	type OnUnbalanced = ();
-	type NativeCurrencyId = NativeCurrencyId;
+	/// Zenlink protocol use the proxy in the registry to control assets module.
+	/// The first in the tuple represent the module index.
+	pub AssetModuleRegistry : Vec<(u8, Box<dyn OperationalAsset<u32, AccountId, TokenBalance>>)> = vec![
+		(18u8, Box::new(CurrenciesProxy{}))
+	];
 }
 
 // culumus runtime end
